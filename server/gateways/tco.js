@@ -21,23 +21,23 @@ exports.pay = function (req, reply) {
     merchantOrderId: invoice.id,
     token: token,
     currency: 'USD',
-    //total: '10.00',
-    lineItems: [
-      {
+    lineItems: invoice.entries.map((entry) => {
+
+      return {
         // The type of line item that is being passed in. (Always Lower Case,
         // ‘product’, ‘shipping’, ‘tax’ or ‘coupon’, defaults to ‘product’)
         // Required
         type: 'product',
         // Name of the item passed in. (128 characters max, cannot use ‘<' or
         // '>’, defaults to capitalized version of ‘type’.) Required
-        name: 'test',
+        name: entry.title,
         // Quantity of the item passed in. (0-999, defaults to 1 if not passed
         // in or incorrectly formatted.) Optional
         quantity: 1,
         // Price of the line item. Format: 0.00-99999999.99, defaults to 0 if a
         // value isn’t passed in or if value is incorrectly formatted, no
         // negatives (use positive values for coupons). Required
-        price: 10,
+        price: entry.amount,
         // Y or N. Will default to Y if the type is shipping. Optional
         tangible: 'N',
         // Your custom product identifier. Optional
@@ -55,18 +55,18 @@ exports.pay = function (req, reply) {
         options: [
           { optName: 'domainName', optValue: 'lupomontero.com', optSurcharge: 0.00 }
         ]
-      }
-    ],
+      };
+    }),
     billingAddr: {
-      name: 'Testing Tester',
-      addrLine1: '123 Test St',
+      name: invoice.billingAddress.givenName + ' ' + invoice.billingAddress.familyName,
+      addrLine1: invoice.billingAddress.streetAddress,
       //addrLine2: '',
-      city: 'Columbus',
-      state: 'Ohio',
-      zipCode: '43123',
-      country: 'USA',
-      email: 'example@2co.com',
-      phoneNumber: '5555555555'
+      city: invoice.billingAddress.locality,
+      state: invoice.billingAddress.region,
+      zipCode: invoice.billingAddress.postCode,
+      country: invoice.billingAddress.country,
+      email: invoice.billingAddress.email,
+      phoneNumber: invoice.billingAddress.tel
     }
   };
 

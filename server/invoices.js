@@ -120,6 +120,7 @@ exports.get = {
       dueAt: Joi.string().required(),
       status: Joi.string().required(),
       tax: Joi.number(),
+      billingAddress: Joi.object(),
       entries: Joi.array().required(),
     })
   },
