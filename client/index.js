@@ -13,6 +13,7 @@ var Gateways = require('./gateways');
 
 module.exports = function (app, options) {
 
+  console.log(options);
   options = options || {};
   options.products = options.products || [];
 

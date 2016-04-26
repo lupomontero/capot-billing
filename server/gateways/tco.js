@@ -4,7 +4,7 @@
 const Tco = require('2checkout-node');
 
 
-exports.pay = function (req, reply) {
+exports.pay = function (req, cb) {
 
   const server = req.server;
   const settings = server.settings.app;
@@ -33,28 +33,33 @@ exports.pay = function (req, reply) {
         name: entry.title,
         // Quantity of the item passed in. (0-999, defaults to 1 if not passed
         // in or incorrectly formatted.) Optional
-        quantity: 1,
+        quantity: entry.quantity,
         // Price of the line item. Format: 0.00-99999999.99, defaults to 0 if a
         // value isn’t passed in or if value is incorrectly formatted, no
         // negatives (use positive values for coupons). Required
         price: entry.amount,
         // Y or N. Will default to Y if the type is shipping. Optional
-        tangible: 'N',
+        tangible: entry.tangible === true ? 'Y' : 'N',
         // Your custom product identifier. Optional
-        productId: 'domain',
+        productId: entry.productId,
         // Sets billing frequency. Ex. ‘1 Week’ to bill order once a week. (Can
         // use # Week, # Month or # Year) Required for recurring lineitems.
-        recurrence: '1 Year',
+        recurrence: entry.recurrence,
         // Sets how long to continue billing. Ex. ‘1 Year’. (Forever or # Week,
         // # Month, # Year) Required for recurring lineitems.
-        duration: 'Forever',
+        duration: entry.duration,
         // Any start up fees for the product or service. Can be negative to
         // provide discounted first installment pricing, but cannot equal or
         // surpass the product price. Optional
-        startupFee: 0,
-        options: [
-          { optName: 'domainName', optValue: 'lupomontero.com', optSurcharge: 0.00 }
-        ]
+        startupFee: entry.startupFee,
+        options: Object.keys(entry.options).map((key) => {
+
+          return {
+            optName: key,
+            optValue: 'lupomontero.com',
+            optSurcharge: 0.00
+          }
+        })
       };
     }),
     billingAddr: {
@@ -74,8 +79,6 @@ exports.pay = function (req, reply) {
 
     const transaction = { gateway: 'tco', createdAt: new Date() };
 
-    invoice.transactions = invoice.transactions || [];
-
     // Authorization failure will result in an error
     if (err) {
       transaction.ok = false;
@@ -85,7 +88,6 @@ exports.pay = function (req, reply) {
       transaction.ok = true;
       transaction.result = data.response;
       // TODO: Check that the correct amount was paid.
-      invoice.status = 'paid';
     }
     else {
       // TODO: Handle `data.exception` and `data.validationErrors`
@@ -93,10 +95,7 @@ exports.pay = function (req, reply) {
       transaction.result = data.response;
     }
 
-    invoice.transactions.push(transaction);
-
-    //TODO: Mark invoice as paid if applicable...
-    reply(invoice);
+    cb(null, transaction);
   });
 };
 

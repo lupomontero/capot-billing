@@ -153,7 +153,23 @@ exports.pay = {
       reply(Boom.badRequest());
     }
 
-    return gateway.pay(req, reply);
+    gateway.pay(req, (err, transaction) => {
+
+      if (err) {
+        return reply(err);
+      }
+
+      console.log(transaction);
+      invoice.transactions = invoice.transactions || [];
+
+      //invoice.status = 'paid';
+      invoice.transactions.push(transaction);
+
+      // TODO: Trigger "process-paid"?
+      // TODO: Store updated invoice...
+
+      reply(transaction);
+    });
   }
 };
 
