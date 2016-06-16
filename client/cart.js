@@ -5,12 +5,22 @@
 var Events = require('events');
 
 
-module.exports = function Cart(app) {
+module.exports = function Cart(app, products) {
 
   var cart = new Events.EventEmitter();
 
 
   cart.add = function (item) {
+
+    if (!item) {
+      throw new Error('cart.add() expects an object as its first argument');
+    }
+
+    var product = products.find(item.product);
+
+    if (!product) {
+      throw new Error('Unknown product!');
+    }
 
     return app.store.add('cart', item);
   };
@@ -33,13 +43,14 @@ module.exports = function Cart(app) {
     return app.store.find('cart', id);
   };
 
+
   cart.toInvoiceEntries = function () {
 
     return cart.findAll().then(function (data) {
 
       return data.map(function (item) {
 
-        var product = app.billing.products.find(item.product);
+        var product = products.find(item.product);
         product.options(item.options);
 
         return {

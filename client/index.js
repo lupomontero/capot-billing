@@ -13,12 +13,11 @@ var Gateways = require('./gateways');
 
 module.exports = function (app, options) {
 
-  console.log(options);
   options = options || {};
   options.products = options.products || [];
 
   return {
-    cart: Cart(app),
+    cart: Cart(app, options.products),
     gateways: Gateways(app),
     products: Products(app, options.products),
     invoices: Invoices(app)
